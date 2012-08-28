@@ -3,6 +3,8 @@ namespace flickr;
 use RuntimeException, Exception;
 class FlickrPhotoExtractor extends \AChaosFileExtractor {
 	
+	// See: http://www.flickr.com/services/api/misc.urls.html
+	
 	public $_imageFormatID;
 	public $_lowResImageFormatID;
 	public $_thumbnailImageFormatID;
