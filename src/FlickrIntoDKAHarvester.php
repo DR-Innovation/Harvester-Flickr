@@ -37,13 +37,13 @@ class FlickrException extends RuntimeException {
 class FlickrIntoDKAHarvester extends AChaosImporter {
 	
 	/**
-	 * The client to use when communicating with the OAI-PMH service.
+	 * The client to use when communicating with the Flickr service.
 	 * @var phpFlickr
 	 */
 	protected $_flickr;
 	
 	/**
-	 * The base url of the external 1001 Fortællinger REST webservice.
+	 * The base url of the external Flickr webservice.
 	 * @var string
 	 */
 	protected $_FlickrBaseUrl;
