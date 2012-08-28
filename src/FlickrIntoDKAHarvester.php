@@ -15,6 +15,8 @@
  * @since      File available since Release 0.1
  */
 
+use flickr\dka\DKAMetadataGenerator;
+
 require "bootstrap.php";
 
 class FlickrException extends RuntimeException {
@@ -62,7 +64,10 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 	 * The token to authenticate towards the external Flickr webservice.
 	 * @var string
 	 */
+	/*
 	protected $_FlickrToken;
+	*/
+	const PER_PAGE = 500;
 	
 	/**
 	 * The object type of a chaos object, to be used later.
@@ -108,12 +113,9 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 		// Adding configuration parameters
 		$this->_CONFIGURATION_PARAMETERS["FLICKR_KEY"] = "_FlickrKey";
 		$this->_CONFIGURATION_PARAMETERS["FLICKR_SECRET"] = "_FlickrSecret";
-		$this->_CONFIGURATION_PARAMETERS["FLICKR_TOKEN"] = "_FlickrToken";
-		/*
-		$this->_CONFIGURATION_PARAMETERS["TOEF_BASE_URL"] = "_TOEFBaseUrl";
-		$this->_CONFIGURATION_PARAMETERS["TOEF_KEY"] = "_TOEFKey";
 		$this->_CONFIGURATION_PARAMETERS["CHAOS_DKA_OBJECT_TYPE_ID"] = "_objectTypeID";
 		
+		/*
 		$this->_CONFIGURATION_PARAMETERS["CHAOS_TOEF_IMAGE_FORMAT_ID"] = "_imageFormatID";
 		$this->_CONFIGURATION_PARAMETERS["CHAOS_TOEF_LOWRES_IMAGE_FORMAT_ID"] = "_lowResImageFormatID";
 		$this->_CONFIGURATION_PARAMETERS["CHAOS_TOEF_THUMBNAIL_IMAGE_FORMAT_ID"] = "_thumbnailImageFormatID";
@@ -121,10 +123,11 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 		*/
 		
 		// Adding xml generators.
-		//$this->_metadataGenerators[] = new XSLTMetadataGenerator('../stylesheets/DKA2.xsl', '5906a41b-feae-48db-bfb7-714b3e105396');
+		$this->_metadataGenerators[] = new flickr\dka\DKAMetadataGenerator();
+		$this->_metadataGenerators[] = new flickr\dka\DKA2MetadataGenerator();
 		//$this->_metadataGenerators[] = new XSLTMetadataGenerator('../stylesheets/DKA.xsl', '00000000-0000-0000-0000-000063c30000');
 		// Adding file extractors.
-		//$this->_fileExtractors['image'] = new toef\FlickrImageExtractor();
+		$this->_fileExtractors['photo'] = new flickr\FlickrPhotoExtractor();
 		
 		parent::__construct($args);
 		$this->Flickr_initialize();
@@ -132,9 +135,8 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 	}
 	
 	function Flickr_initialize() {
-		//$this->_flickr = new FlickrClient($this->_FlickrBaseUrl, $this->_FlickrKey);
 		$this->_flickr = new phpFlickr($this->_FlickrKey, $this->_FlickrSecret, true);
-		$this->_flickr->setToken($this->_FlickrToken);
+		/*$this->_flickr->setToken($this->_FlickrToken);
 		
 		$response = $this->_flickr->test_login();
 		if($response === false) {
@@ -152,17 +154,51 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 	}
 	
 	protected function fetchRange($start, $count = null) {
-		$this->
-		$this->_flickr->photosets_getInfo('');
-		throw new RuntimeException("Not implemented.");
+		if(array_key_exists('flickr-set', $this->runtimeOptions)) {
+			$flickrSet = $this->runtimeOptions['flickr-set'];
+			$response = $this->_flickr->photosets_getInfo($flickrSet);
+			printf("Harvesting images from the '%s' photoset.\n", $response['title']);
+			
+			$result = array();
+			$page = floor($start / self::PER_PAGE);
+			$offset = $page * self::PER_PAGE;
+			// The webservice is one-indexed.
+			$page += 1;
+			
+			do {
+				$response = $this->_flickr->photosets_getPhotos($flickrSet, null, null, self::PER_PAGE, $page);
+				foreach($response['photoset']['photo'] as $photo) {
+					if($offset < $start) {
+						$offset++;
+						continue;
+					} elseif ($count == null || $offset < $count) {
+						$result[] = strval($photo['id']);
+						$offset++;
+					} else {
+						// All done
+						break 2;
+					}
+				}
+				$page++;
+			} while(count($response['photoset']['photo']) > 0);
+			
+			return $result;
+		} else {
+			throw new RuntimeException("The runtime parameter --flickr-set={...} must be sat.");
+		}
 	}
 	
 	protected function fetchSingle($reference) {
-		throw new RuntimeException("Not implemented.");
+		$response = $this->_flickr->photos_getInfo($reference);
+		if($response === false || !is_array($response['photo'])) {
+			throw new RuntimeException("Errors occurred when harvesting.");
+		} else {
+			return $response['photo'];
+		}
 	}
 	
 	protected function externalObjectToString($externalObject) {
-		return "?";
+		return sprintf("%s [%u]", $externalObject['title'], $externalObject['id']);
 	}
 	
 	protected function initializeExtras($sight, &$extras) {
@@ -170,26 +206,18 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 	}
 	
 	protected function shouldBeSkipped($externalObject) {
-		return true;
+		return false;
 	}
 	
 	protected function generateChaosQuery($externalObject) {
-		/*if($externalObject == null) {
+		if($externalObject == null) {
 			throw new RuntimeException("Cannot get or create a Chaos object from a null external object.");
 		}
-		$id = strval($externalObject->id);
-		
+		$id = $externalObject["id"]; 
 		$folderId = $this->_ChaosFolderID;
 		$objectTypeId = $this->_objectTypeID;
 		// Extract the nummeric ID.
-		$nummericId = explode('/', $id);
-		$nummericId = $nummericId[count($nummericId)-1];
-		// Query for a Chaos Object that represents the DFI movie.
-		$old = sprintf('(DKA-Organization:"%s" AND ObjectTypeID:%u AND m00000000-0000-0000-0000-000063c30000_da_all:"%s")', 'Kulturarvsstyrelsen', $objectTypeId, $nummericId);
-		$new = sprintf('(FolderTree:%u AND ObjectTypeID:%u AND DKA-ExternalIdentifier:"%s")', $folderId, $objectTypeId, $id);
-		return sprintf('(%s OR %s)', $new, $old);
-		*/
-		return "";
+		return sprintf('(FolderTree:%u AND ObjectTypeID:%u AND DKA-ExternalIdentifier:"%s")', $folderId, $objectTypeId, $id);
 	}
 	
 	protected function getChaosObjectTypeID() {
