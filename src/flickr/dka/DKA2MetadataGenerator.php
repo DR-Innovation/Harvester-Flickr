@@ -67,9 +67,11 @@ class DKA2MetadataGenerator extends DKAMetadataGenerator {
 		}
 		*/
 		
-		$location = self::extractLocation($photo['location']);
-		if($location != null) {
-			$result->addChild("Location", $location);
+		if(array_key_exists('location', $photo)) {
+			$location = self::extractLocation($photo['location']);
+			if($location != null) {
+				$result->addChild("Location", $location);
+			}
 		}
 		
 		$result->addChild("RightsDescription", 'Copyright © ' . $photo['owner']['username']);

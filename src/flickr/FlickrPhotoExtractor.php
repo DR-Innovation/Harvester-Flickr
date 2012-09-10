@@ -24,16 +24,36 @@ class FlickrPhotoExtractor extends \AChaosFileExtractor {
 		
 		$imagesProcessed = array();
 		
-		printf("\tUpdating the file for the thumbnail image: ");
 		// Update the thumbnail.
-		$folderPath = sprintf("%s", $photo['server']);
-		$filename = sprintf("%s_%s_m.jpg", $photo['id'], $photo['secret']);
+		$folderPath = sprintf("%s.staticflickr.com/%s", $photo['farm'], $photo['server']);
+		$filenames = array();
+		// b = large, 1024 on longest side
+		$filenames['normal'] = self::generateFilename($photo['id'], $photo['secret'], 'b');
+		// m = small, 240 on longest side
+		$filenames['lowres'] = self::generateFilename($photo['id'], $photo['secret'], 'm');
+		// m = small, 240 on longest side
+		$filenames['thumbnail'] = self::generateFilename($photo['id'], $photo['secret'], 'm');
 		
-		var_dump($folderPath);
-		var_dump($filename);
-		exit;
+		printf("\tUpdating the file for the thumbnail image: ");
+		$response = $this->getOrCreateFile($harvester, $object, null, $this->_thumbnailImageFormatID, $this->_imageDestinationID, $filenames['thumbnail'], $filenames['thumbnail'], $folderPath);
+		if($response == null) {
+			throw new RuntimeException("Failed to create the main image file.");
+		} else {
+			$imagesProcessed[] = $response;
+		}
+		printf(" Done.\n");
 		
-		$response = $this->getOrCreateFile($harvester, $object, null, $this->_thumbnailImageFormatID, $this->_imageDestinationID, $filename, $filename, $folderPath);
+		printf("\tUpdating the file for the main image: ");
+		$response = $this->getOrCreateFile($harvester, $object, null, $this->_imageFormatID, $this->_imageDestinationID, $filenames['normal'], $filenames['normal'], $folderPath);
+		if($response == null) {
+			throw new RuntimeException("Failed to create the main image file.");
+		} else {
+			$imagesProcessed[] = $response;
+		}
+		printf(" Done.\n");
+		
+		printf("\tUpdating the file for the main (lowres) image: ");
+		$response = $this->getOrCreateFile($harvester, $object, null, $this->_lowResImageFormatID, $this->_imageDestinationID, $filenames['lowres'], $filenames['lowres'], $folderPath);
 		if($response == null) {
 			throw new RuntimeException("Failed to create the main image file.");
 		} else {
@@ -42,5 +62,9 @@ class FlickrPhotoExtractor extends \AChaosFileExtractor {
 		printf(" Done.\n");
 		
 		return $imagesProcessed;
+	}
+	
+	static function generateFilename($id, $secret, $size) {
+		return sprintf("%s_%s_%s.jpg", $id, $secret, $size);
 	}
 }

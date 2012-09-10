@@ -74,7 +74,14 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 	 * Populated when AChaosImporter::loadConfiguration is called.
 	 * @var string
 	 */
-	protected $_objectTypeID;
+	protected $_photoObjectTypeID;
+	
+	/**
+	 * The object type of a DKA Collection object, to be used later.
+	 * Populated when AChaosImporter::loadConfiguration is called.
+	 * @var string
+	 */
+	protected $_photosetObjectTypeID;
 	
 	/**
 	 * The ID of the format to be used when linking images to a DKA Program.
@@ -113,14 +120,13 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 		// Adding configuration parameters
 		$this->_CONFIGURATION_PARAMETERS["FLICKR_KEY"] = "_FlickrKey";
 		$this->_CONFIGURATION_PARAMETERS["FLICKR_SECRET"] = "_FlickrSecret";
-		$this->_CONFIGURATION_PARAMETERS["CHAOS_DKA_OBJECT_TYPE_ID"] = "_objectTypeID";
+		$this->_CONFIGURATION_PARAMETERS["CHAOS_DKA_PHOTO_OBJECT_TYPE_ID"] = "_photoObjectTypeID";
+		$this->_CONFIGURATION_PARAMETERS["CHAOS_DKA_PHOTOSET_OBJECT_TYPE_ID"] = "_photosetObjectTypeID";
 		
-		/*
-		$this->_CONFIGURATION_PARAMETERS["CHAOS_TOEF_IMAGE_FORMAT_ID"] = "_imageFormatID";
-		$this->_CONFIGURATION_PARAMETERS["CHAOS_TOEF_LOWRES_IMAGE_FORMAT_ID"] = "_lowResImageFormatID";
-		$this->_CONFIGURATION_PARAMETERS["CHAOS_TOEF_THUMBNAIL_IMAGE_FORMAT_ID"] = "_thumbnailImageFormatID";
-		$this->_CONFIGURATION_PARAMETERS["CHAOS_TOEF_IMAGE_DESTINATION_ID"] = "_imageDestinationID";
-		*/
+		$this->_CONFIGURATION_PARAMETERS["CHAOS_FLICKR_IMAGE_FORMAT_ID"] = "_imageFormatID";
+		$this->_CONFIGURATION_PARAMETERS["CHAOS_FLICKR_LOWRES_IMAGE_FORMAT_ID"] = "_lowResImageFormatID";
+		$this->_CONFIGURATION_PARAMETERS["CHAOS_FLICKR_THUMBNAIL_IMAGE_FORMAT_ID"] = "_thumbnailImageFormatID";
+		$this->_CONFIGURATION_PARAMETERS["CHAOS_FLICKR_IMAGE_DESTINATION_ID"] = "_imageDestinationID";
 		
 		// Adding xml generators.
 		$this->_metadataGenerators[] = new flickr\dka\DKAMetadataGenerator();
@@ -144,47 +150,53 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 		} else {
 			printf("Flickr client initialized, harvesting photos from '%s'.\n", $response['username']);
 		}
-		
-		/*
-		$this->_fileExtractors['image']->_imageFormatID = $this->_imageFormatID;
-		$this->_fileExtractors['image']->_lowResImageFormatID = $this->_lowResImageFormatID;
-		$this->_fileExtractors['image']->_thumbnailImageFormatID = $this->_thumbnailImageFormatID;
-		$this->_fileExtractors['image']->_imageDestinationID = $this->_imageDestinationID;
 		*/
+		
+		$this->_fileExtractors['photo']->_imageFormatID = $this->_imageFormatID;
+		$this->_fileExtractors['photo']->_lowResImageFormatID = $this->_lowResImageFormatID;
+		$this->_fileExtractors['photo']->_thumbnailImageFormatID = $this->_thumbnailImageFormatID;
+		$this->_fileExtractors['photo']->_imageDestinationID = $this->_imageDestinationID;
 	}
 	
 	protected function fetchRange($start, $count = null) {
-		if(array_key_exists('flickr-set', $this->runtimeOptions)) {
-			$flickrSet = $this->runtimeOptions['flickr-set'];
-			$response = $this->_flickr->photosets_getInfo($flickrSet);
-			printf("Harvesting images from the '%s' photoset.\n", $response['title']);
-			
-			$result = array();
-			$page = floor($start / self::PER_PAGE);
-			$offset = $page * self::PER_PAGE;
-			// The webservice is one-indexed.
-			$page += 1;
-			
-			do {
-				$response = $this->_flickr->photosets_getPhotos($flickrSet, null, null, self::PER_PAGE, $page);
-				foreach($response['photoset']['photo'] as $photo) {
-					if($offset < $start) {
-						$offset++;
-						continue;
-					} elseif ($count == null || $offset < $count) {
-						$result[] = strval($photo['id']);
-						$offset++;
-					} else {
-						// All done
-						break 2;
+		if(array_key_exists('flickr-sets', $this->runtimeOptions)) {
+			$flickrSets = explode(',', $this->runtimeOptions['flickr-sets']);
+			foreach($flickrSets as $flickrSet) {
+				$response = $this->_flickr->photosets_getInfo($flickrSet);
+				printf("Harvesting images from the '%s' #%s photoset.\n", $response['title'], $flickrSet);
+				
+				/*
+				// Getting or creating the photoset object as a collection.
+				$collection = $this->getOrCreateObject($response);
+				*/
+				
+				$result = array();
+				$page = floor($start / self::PER_PAGE);
+				$offset = $page * self::PER_PAGE;
+				// The webservice is one-indexed.
+				$page += 1;
+				
+				do {
+					$response = $this->_flickr->photosets_getPhotos($flickrSet, null, null, self::PER_PAGE, $page);
+					foreach($response['photoset']['photo'] as $photo) {
+						if($offset < $start) {
+							$offset++;
+							continue;
+						} elseif ($count == null || $offset < $count) {
+							$result[] = strval($photo['id']);
+							$offset++;
+						} else {
+							// All done
+							break 2;
+						}
 					}
-				}
-				$page++;
-			} while(count($response['photoset']['photo']) > 0);
-			
-			return $result;
+					$page++;
+				} while(count($response['photoset']['photo']) > 0);
+				
+				return $result;
+			}
 		} else {
-			throw new RuntimeException("The runtime parameter --flickr-set={...} must be sat.");
+			throw new RuntimeException("The runtime parameter --flickr-sets={...} must be sat.");
 		}
 	}
 	
@@ -213,15 +225,32 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 		if($externalObject == null) {
 			throw new RuntimeException("Cannot get or create a Chaos object from a null external object.");
 		}
-		$id = $externalObject["id"]; 
-		$folderId = $this->_ChaosFolderID;
-		$objectTypeId = $this->_objectTypeID;
-		// Extract the nummeric ID.
-		return sprintf('(FolderTree:%u AND ObjectTypeID:%u AND DKA-ExternalIdentifier:"%s")', $folderId, $objectTypeId, $id);
+		
+		if($this->isPhotoset($externalObject)) {
+			$id = $externalObject["id"];
+			$folderId = $this->_ChaosFolderID;
+			$objectTypeId = $this->_photosetObjectTypeID;
+			// Extract the nummeric ID.
+			return sprintf('(FolderTree:%u AND ObjectTypeID:%u AND DKA-ExternalIdentifier:"%s")', $folderId, $objectTypeId, $id);
+		} else {
+			$id = $externalObject["id"];
+			$folderId = $this->_ChaosFolderID;
+			$objectTypeId = $this->_photoObjectTypeID;
+			// Extract the nummeric ID.
+			return sprintf('(FolderTree:%u AND ObjectTypeID:%u AND DKA-ExternalIdentifier:"%s")', $folderId, $objectTypeId, $id);
+		}
 	}
 	
-	protected function getChaosObjectTypeID() {
-		return $this->_objectTypeID;
+	protected function getChaosObjectTypeID($externalObject) {
+		if($this->isPhotoset($externalObject)) {
+			return $this->_photosetObjectTypeID;
+		} else {
+			return $this->_photoObjectTypeID;
+		}
+	}
+	
+	public function isPhotoset($externalObject) {
+		return array_key_exists('photos', $externalObject) && is_int($externalObject['photos']);
 	}
 	
 	public function getExternalClient() {

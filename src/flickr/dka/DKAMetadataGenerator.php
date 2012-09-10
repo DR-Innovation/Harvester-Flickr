@@ -29,7 +29,14 @@ class DKAMetadataGenerator extends \AChaosMetadataGenerator {
 		// TODO: Consider if this is the correct mapping.
 		$result->addChild("Abstract", '');
 		
-		$result->addChild("Description", $photo['description']);
+		$descriptionLines = explode("\n", trim($photo['description']));
+		$descriptionLines = array_filter($descriptionLines);
+		foreach($descriptionLines as &$line) {
+			$line = '<p>' . $line . '</p>';
+		}
+		$htmlDescription = implode("\n", $descriptionLines);
+		
+		$result->addChild("Description", $htmlDescription);
 		
 		$result->addChild("Organization", $photo['owner']['username']);
 		
@@ -61,9 +68,11 @@ class DKAMetadataGenerator extends \AChaosMetadataGenerator {
 			}
 		}
 		*/
-		$location = self::extractLocation($photo['location']);
-		if($location != null) {
-			$result->addChild("Location", $location);
+		if(array_key_exists('location', $photo)) {
+			$location = self::extractLocation($photo['location']);
+			if($location != null) {
+				$result->addChild("Location", $location);
+			}
 		}
 		
 		$result->addChild("RightsDescription", 'Copyright © ' . $photo['owner']['username']);
