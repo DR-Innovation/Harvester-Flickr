@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chc:ChaosHarvesterConfiguration xmlns:chc="http://www.example.org/ChaosHarvesterConfiguration" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.example.org/ChaosHarvesterConfiguration ../../../schemas/ChaosHarvesterConfiguration.xsd ">
+  <chc:Organisation>DR Medier</chc:Organisation>
+  <chc:Project>Flickr</chc:Project>
+  <chc:Description>This harvester fetches movieclips from the http://www.flickr.com/</chc:Description>
+  <chc:BasePath fromEnvironment="BASEPATH" />
+  <chc:IncludePaths>
+    <chc:path>Base/src</chc:path>
+    <chc:path>chaos-client/src</chc:path>
+    <chc:path>../../Timed-PHP/src</chc:path>
+    <chc:path>Flickr/src</chc:path>
+  </chc:IncludePaths>
+  <chc:ChaosConfiguration>
+	<chc:URL fromEnvironment="CHAOS_URL" />
+	<chc:Email fromEnvironment="CHAOS_EMAIL" />
+	<chc:Password fromEnvironment="CHAOS_PASSWORD" />
+  </chc:ChaosConfiguration>
+  <chc:ExternalClient className="LoadableFlickrClient" name="flickr"
+  	namespace="CHAOS\Harvester\Flickr">
+  	<chc:Parameter name="key">4a9d394d98d5ac263be563e4703f2477</chc:Parameter>
+  	<chc:Parameter name="secret">5b2451bbc934b6b2</chc:Parameter>
+  </chc:ExternalClient>
+  <chc:Modes>
+  	<chc:Mode className="ByTagMode" namespace="CHAOS\Harvester\Flickr\Modes" name="tag">
+  		<chc:Parameter name="flickrUserID">kulturarvsprojektet</chc:Parameter>
+  	</chc:Mode>
+  </chc:Modes>
+  <chc:Processors>
+    <chc:ObjectProcessor className="PhotoObjectProcessor"
+    	namespace="\CHAOS\Harvester\Flickr\Processors" name="photo">
+    	<chc:FolderId>252</chc:FolderId>
+    	<chc:ObjectTypeId>36</chc:ObjectTypeId>
+		<chc:PublishSettings>
+			<chc:PublishAccesspoint>
+				30000000-0000-0000-0000-000000000000
+			</chc:PublishAccesspoint>
+			<chc:UnpublishAccesspoint>
+				30000000-0000-0000-0000-000000000000
+			</chc:UnpublishAccesspoint>
+		</chc:PublishSettings>
+    </chc:ObjectProcessor>
+  </chc:Processors>
+</chc:ChaosHarvesterConfiguration>
