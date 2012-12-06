@@ -191,8 +191,7 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 						}
 					}
 					$page++;
-				} while(count($response['photoset']['photo']) > 0);
-				
+				} while(count($result) < intval($response['photoset']['total']));
 				return $result;
 			}
 		} else {
