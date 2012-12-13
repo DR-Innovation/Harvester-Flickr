@@ -30,7 +30,7 @@ class LoadableFlickrClient extends \phpFlickr implements \CHAOS\Harvester\IExter
 	 * @param string $baseURL 
 	 */
 	public function __construct($harvester, $name, $parameters = array()) {
-		parent::__construct($parameters['key'], $parameters['secret'], true);
+		parent::__construct($parameters['key'], $parameters['secret'], $harvester->hasOption('debug'));
 		$this->harvester = $harvester;
 	}
 	

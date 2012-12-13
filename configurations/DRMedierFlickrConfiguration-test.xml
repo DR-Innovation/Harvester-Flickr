@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chc:ChaosHarvesterConfiguration xmlns:chc="http://www.example.org/ChaosHarvesterConfiguration" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.example.org/ChaosHarvesterConfiguration ../../../schemas/ChaosHarvesterConfiguration.xsd ">
+<chc:ChaosHarvesterConfiguration xmlns:chc="http://www.example.org/ChaosHarvesterConfiguration" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.example.org/ChaosHarvesterConfiguration ../../Base/schemas/ChaosHarvesterConfiguration.xsd ">
   <chc:Organisation>DR Medier</chc:Organisation>
   <chc:Project>Flickr</chc:Project>
   <chc:Description>This harvester fetches movieclips from the http://www.flickr.com/</chc:Description>
@@ -21,7 +21,7 @@
   	<chc:Parameter name="secret">5b2451bbc934b6b2</chc:Parameter>
   </chc:ExternalClient>
   <chc:Modes>
-  	<chc:Mode className="ByTagMode" namespace="CHAOS\Harvester\Flickr\Modes" name="tag">
+  	<chc:Mode className="ByTagMode" namespace="CHAOS\Harvester\Flickr\Modes" name="by-tag">
   		<chc:Parameter name="flickrUserID">kulturarvsprojektet</chc:Parameter>
   	</chc:Mode>
   </chc:Modes>

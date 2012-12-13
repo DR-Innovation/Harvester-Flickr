@@ -21,7 +21,7 @@ class DKA2MetadataGenerator extends DKAMetadataGenerator {
 	 * @return DOMDocument Representing the imported item as XML in a specific schema.
 	 */
 	public function generateXML($photo, &$extras) {
-		$result = new SimpleXMLElement("<?xml version='1.0' encoding='UTF-8' standalone='yes'?><dka:DKA xmlns:dka='http://www.danskkulturarv.dk/DKA2.xsd' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.danskkulturarv.dk/DKA2.xsd ../schemas/DKA2.xsd '></dka:DKA>");
+		$result = new SimpleXMLElement("<?xml version='1.0' encoding='UTF-8' standalone='yes'?><dka:DKA xmlns:dka='http://www.danskkulturarv.dk/DKA2.xsd' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'></dka:DKA>");
 		
 		$result->addChild("Title", $photo['title']);
 		
