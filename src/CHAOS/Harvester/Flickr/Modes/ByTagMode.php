@@ -8,25 +8,41 @@ class ByTagMode extends \CHAOS\Harvester\Modes\SetByReferenceMode {
 	
 	public function __construct($harvester, $name, $parameters) {
 		parent::__construct($harvester, $name, $parameters);
-		/*
 		if(key_exists('flickrUsername', $parameters)) {
 			$flickr = $this->_harvester->getExternalClient('flickr');
-			$result = $flickr->people_findByUsername($parameters['flickrUsername']);
-			if($result !== false) {
-				$this->_flickrUserID = $result['nsid'];
-			}
+			$response = $flickr->people_findByUsername($parameters['flickrUsername']);
+			$this->_flickrUserID = $response['nsid'];
 		}
-		*/
-		// TODO: Implement this ...
 	}
 	
 	function execute($reference) {
-		var_dump($this->_flickrUserID);
+		
+		/* @var $flickr CHAOS\Harvester\Flickr\LoadableFlickrClient */
 		$flickr = $this->_harvester->getExternalClient('flickr');
-		$result = $flickr->photos_search(array(
-			'user_id' => $this->_flickrUserID,
-			'tags' => $reference
-		));
-		var_dump($result);
+		
+		$page = 1;
+		$photoIndex = 1;
+		
+		while(true) {
+			$result = $flickr->photos_search(array(
+					'user_id' => $this->_flickrUserID,
+					'per_page' => 50,
+					'page' => $page++,
+					'tags' => $reference,
+					'extras' => 'description,date_taken,tags,url_s,url_l',
+					'content_type' => 7, // 7 for photos, screenshots, and 'other' (all).
+					'media' => 'photos'
+			));
+			
+			foreach($result['photo'] as $photo) {
+				$this->_harvester->info("[%u/%u] Processing '%s' #%u", $photoIndex++, $result['total'], $photo['title'], $photo['id']);
+				$photoShadow = $this->_harvester->process('photo', $photo);
+			}
+			
+			if($result['page'] == $result['pages']) {
+				break;
+			}
+		}
+		
 	}
 }
