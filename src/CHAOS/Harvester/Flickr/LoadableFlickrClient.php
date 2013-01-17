@@ -42,11 +42,12 @@ class LoadableFlickrClient extends \phpFlickr implements \CHAOS\Harvester\IExter
 		$echo = $this->test_echo();
 		return $echo['stat'] == 'ok';
 	}
-	
+	/*
 	public function __doRequest ($request, $location, $action, $version, $one_way = null) {
 		//timed();
 		//$result = parent::__doRequest($request, $location, $action, $version, $one_way);
 		//timed('bonanza');
 		//return $result;
 	}
+	*/
 }
