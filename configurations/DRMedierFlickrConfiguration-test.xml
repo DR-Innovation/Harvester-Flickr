@@ -22,7 +22,7 @@
   </chc:ExternalClient>
   <chc:Modes>
   	<chc:Mode className="ByTagMode" namespace="CHAOS\Harvester\Flickr\Modes" name="by-tag">
-  		<chc:Parameter name="flickrUserID">kulturarvsprojektet</chc:Parameter>
+  		<chc:Parameter name="flickrUsername">DRs Kulturarvsprojekt</chc:Parameter>
   	</chc:Mode>
   </chc:Modes>
   <chc:Processors>
