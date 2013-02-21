@@ -8,7 +8,7 @@
     <chc:path>Base/src</chc:path>
     <chc:path>chaos-client/src</chc:path>
     <chc:path>Timed-PHP/src</chc:path>
-    <chc:path>Flickr/src</chc:path>
+    <chc:path>../src</chc:path>
   </chc:IncludePaths>
   <chc:ChaosConfiguration>
 	<chc:URL fromEnvironment="CHAOS_URL" />
@@ -39,5 +39,9 @@
 			</chc:UnpublishAccesspoint>
 		</chc:PublishSettings>
     </chc:ObjectProcessor>
+    <chc:MetadataProcessor name="photo_metadata" className="PhotoMetadataProcessor" namespace="\CHAOS\Harvester\Flickr\Processors">
+    	<chc:validate>true</chc:validate>
+    	<chc:schemaGUID>5906a41b-feae-48db-bfb7-714b3e105396</chc:schemaGUID>
+    </chc:MetadataProcessor>
   </chc:Processors>
 </chc:ChaosHarvesterConfiguration>
