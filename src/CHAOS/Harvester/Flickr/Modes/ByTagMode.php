@@ -11,6 +11,7 @@ class ByTagMode extends \CHAOS\Harvester\Modes\SetByReferenceMode {
 		if(key_exists('flickrUsername', $parameters)) {
 			$flickr = $this->_harvester->getExternalClient('flickr');
 			$response = $flickr->people_findByUsername($parameters['flickrUsername']);
+			var_dump($response);
 			$this->_flickrUserID = $response['nsid'];
 		}
 	}
@@ -24,29 +25,24 @@ class ByTagMode extends \CHAOS\Harvester\Modes\SetByReferenceMode {
 		
 		$this->_harvester->debug("Executing %s on tag = '%s'.", $this->_name, $reference);
 		
-		while(true) {
+		do {
 			// TODO: Consider searching for any picture on the user and do a client-side filtering on tags.
 			$result = $flickr->photos_search(array(
 				'user_id' => $this->_flickrUserID,
 				'per_page' => 50,
 				'page' => $page++,
 				'tags' => $reference,
-				'extras' => 'description,date_taken,tags,url_s,url_l',
+				'extras' => 'description,license,owner_name,date_taken,tags,url_s,url_l',
 				'content_type' => 7, // 7 for photos, screenshots, and 'other' (all).
 				'media' => 'photos'
 			));
 			
-			var_dump($result);
-			
 			foreach($result['photo'] as $photo) {
 				$this->_harvester->info("[%u/%u] Processing '%s' #%u", $photoIndex++, $result['total'], $photo['title'], $photo['id']);
+				$photo['ownerid'] = $this->_flickrUserID;
 				$photoShadow = $this->_harvester->process('photo', $photo);
 			}
-			
-			if($result['page'] == $result['pages']) {
-				break;
-			}
-		}
+		} while($result['page'] < $result['pages']);
 		
 	}
 }
