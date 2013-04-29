@@ -60,8 +60,7 @@ class PhotoMetadataProcessor extends \CHAOS\Harvester\Processors\MetadataProcess
 		
 		if(array_key_exists('place_id', $photo)) {
 			$location = $this->resolveLocationName($photo['place_id']);
-			var_dump($location);
-			if($location != null) {
+			if($location !== null) {
 				$result->addChild("Location", htmlspecialchars($location));
 			}
 		}
