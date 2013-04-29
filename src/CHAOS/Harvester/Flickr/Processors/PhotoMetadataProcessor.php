@@ -2,82 +2,88 @@
 namespace CHAOS\Harvester\Flickr\Processors;
 class PhotoMetadataProcessor extends \CHAOS\Harvester\Processors\MetadataProcessor {
 	
+	protected function resolveLocationName($place_id) {
+		$flickr = $this->_harvester->getExternalClient('flickr');
+		/* @var $flickr \CHAOS\Harvester\Flickr\LoadableFlickrClient */
+		
+		$place = $flickr->places_getInfo($place_id);
+		
+		if($place && array_key_exists('name', $place)) {
+			return $place['name'];
+		} else {
+			return null;
+		}
+	}
+	
+	protected function resolveLicenseName($license) {
+		assert($license != null);
+		
+		$flickr = $this->_harvester->getExternalClient('flickr');
+		$licenseInfo = $flickr->photos_licenses_getInfo();
+		if(array_key_exists($license, $licenseInfo)) {
+			$licenseInfo = $licenseInfo[$license];
+			return sprintf("%s (%s)", $licenseInfo['name'], $licenseInfo['url']);
+		} else {
+			return "Unknown";
+		}
+	}
+	
 	public function generateMetadata($externalObject, &$shadow = null) {
 		$photo = $externalObject;
+		
 		$result = new \SimpleXMLElement('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><DKA xmlns="http://www.danskkulturarv.dk/DKA2.xsd"></DKA>');
 		
-		$photo['url'] = sprintf("http://www.flickr.com/photos/%s/%u/", $photo['ownerid'], $photo['id']);
-		
-		var_dump($photo);
-		exit;
-		$result->addChild("Title", trim(htmlspecialchars($photo->title)));
+		$result->addChild("Title", trim(htmlspecialchars($photo['title'])));
 		
 		$result->addChild("Abstract", '');
 		
-		$decription = htmlspecialchars($photo->description);
+		$decription = htmlspecialchars($photo['description']);
 		$result->addChild("Description", $decription);
 		
-		$result->addChild("Organization", self::DFI_ORGANIZATION_NAME);
+		$result->addChild("Organization", $photo['ownername']);
 
 		$result->addChild("ExternalURL", $photo['url']);
+
+		$result->addChild("ExternalIdentifier", $photo['url']);
 		
 		$result->addChild("Type", "Photo");
 		
-		// TODO Make the conversion work.
-		/*
-		$result->addChild("CreatedDate", self::yearToXMLDateTime((string)$externalObject->ProductionYear));
+		$result->addChild("CreatedDate", date('c', strtotime($photo['datetaken'])));
+
+		$result->addChild("FirstPublishedDate", date('c', intval($photo['dateupload'])));
 		
-		$result->addChild("FirstPublishedDate", self::yearToXMLDateTime((string)$externalObject->ReleaseYear));
+		// Contributors and creators is left out.
+		$result->addChild('Contributors');
+		$result->addChild('Creators');
+
+		// $result->addChild("TechnicalComment", "Format: ". $format);
 		
-		$contributors = $result->addChild("Contributors");
-		foreach($externalObject->Credits->children() as $creditListItem) {
-			if($this->isContributor($creditListItem->Type)) {
-				$contributor = $contributors->addChild("Contributor");
-				$contributor->addAttribute("Name", trim(htmlspecialchars($creditListItem->Name)));
-				$contributor->addAttribute("Role", self::translateCreditTypeToRole(htmlspecialchars($creditListItem->Type)));
+		if(array_key_exists('place_id', $photo)) {
+			$location = $this->resolveLocationName($photo['place_id']);
+			var_dump($location);
+			if($location != null) {
+				$result->addChild("Location", htmlspecialchars($location));
 			}
 		}
 		
-		$creators = $result->addChild("Creators");
-		foreach($externalObject->Credits->children() as $creditListItem) {
-			if($this->isCreator($creditListItem->Type)) {
-				$creator = $creators->addChild("Creator");
-				$creator->addAttribute("Name", trim(htmlspecialchars($creditListItem->Name)));
-				$creator->addAttribute("Role", self::translateCreditTypeToRole(htmlspecialchars($creditListItem->Type)));
+		$result->addChild("RightsDescription", $this->resolveLicenseName($photo['license']));
+		
+		if(array_key_exists('latitude', $photo) && array_key_exists('longitude', $photo)) {
+			if($photo['latitude'] != 0 && $photo['longitude'] != 0) { // Very unlikely.
+				$geoData = $result->addChild("GeoData");
+				$geoData->addChild("Latitude", $photo['latitude']);
+				$geoData->addChild("Longitude", $photo['longitude']);
 			}
 		}
-		// This goes for the new DKA Metadata.
-		foreach($externalObject->xpath('/dfi:MovieItem/dfi:ProductionCompanies/dfi:CompanyListItem') as $company) {
-			$creator = $creators->addChild("Creator");
-			$creator->addAttribute("Name", trim(htmlspecialchars($company->Name)));
-			$creator->addAttribute("Role", 'Production');
-		}
-		foreach($externalObject->xpath('/dfi:MovieItem/dfi:DistributionCompanies/dfi:CompanyListItem') as $company) {
-			$creator = $creators->addChild("Creator");
-			$creator->addAttribute("Name", trim(htmlspecialchars($company->Name)));
-			$creator->addAttribute("Role", 'Distribution');
-		}
-		
-		$format = trim(htmlspecialchars($externalObject->Format));
-		if($format !== '') {
-			$result->addChild("TechnicalComment", "Format: ". $format);
-		}
-		
-		// TODO: Consider if the location is the shooting location or the production location.
-		$result->addChild("Location", htmlspecialchars($externalObject->CountryOfOrigin));
-		
-		$result->addChild("RightsDescription", self::RIGHTS_DESCIPTION);
-		
-		$Categories = $result->addChild("Categories");
-		$Categories->addChild("Category", htmlspecialchars($externalObject->Category));
-		
-		foreach($externalObject->xpath('/dfi:MovieItem/dfi:SubCategories/a:string') as $subCategory) {
-			$Categories->addChild("Category", $subCategory);
-		}
+
+		$result->addChild("Categories");
 		
 		$Tags = $result->addChild("Tags");
-		$Tags->addChild("Tag", "DFI");
-		*/
+		$Tags->addChild("Tag", "Flickr");
+		foreach(explode(\CHAOS\Harvester\Flickr\Filters\FlickrTagFilter::TAG_SEPERATOR, $photo['tags']) as $tag) {
+			$Tags->addChild("Tag", $tag);
+		}
+		
 		return $result;
 	}
 }

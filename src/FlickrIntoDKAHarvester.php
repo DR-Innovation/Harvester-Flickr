@@ -230,13 +230,13 @@ class FlickrIntoDKAHarvester extends AChaosImporter {
 			$folderId = $this->_ChaosFolderID;
 			$objectTypeId = $this->_photosetObjectTypeID;
 			// Extract the nummeric ID.
-			return sprintf('(FolderTree:%u AND ObjectTypeID:%u AND DKA-ExternalIdentifier:"%s")', $folderId, $objectTypeId, $id);
+			return sprintf('(FolderID:%u AND ObjectTypeID:%u AND DKA-ExternalIdentifier:"%s")', $folderId, $objectTypeId, $id);
 		} else {
 			$id = $externalObject["id"];
 			$folderId = $this->_ChaosFolderID;
 			$objectTypeId = $this->_photoObjectTypeID;
 			// Extract the nummeric ID.
-			return sprintf('(FolderTree:%u AND ObjectTypeID:%u AND DKA-ExternalIdentifier:"%s")', $folderId, $objectTypeId, $id);
+			return sprintf('(FolderID:%u AND ObjectTypeID:%u AND DKA-ExternalIdentifier:"%s")', $folderId, $objectTypeId, $id);
 		}
 	}
 	

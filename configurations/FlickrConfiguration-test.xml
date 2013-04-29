@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chc:ChaosHarvesterConfiguration xmlns:chc="http://www.example.org/ChaosHarvesterConfiguration" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.example.org/ChaosHarvesterConfiguration ../../Base/schemas/ChaosHarvesterConfiguration.xsd ">
+  <chc:Organisation>DR Medier</chc:Organisation>
+  <chc:Project>Flickr</chc:Project>
+  <chc:Description>This harvester fetches movieclips from the http://www.flickr.com/</chc:Description>
+  <chc:BasePath fromEnvironment="BASEPATH" />
+  <chc:IncludePaths>
+    <chc:path>abstract-harvester-base/src</chc:path>
+    <chc:path>abstract-harvester-base/lib/CHAOS-Client/src</chc:path>
+    <chc:path>abstract-harvester-base/lib/Timed-PHP/src</chc:path>
+    <chc:path>../src</chc:path>
+  </chc:IncludePaths>
+  <chc:ChaosConfiguration>
+	<chc:URL fromEnvironment="CHAOS_URL" />
+	<chc:Email fromEnvironment="CHAOS_EMAIL" />
+	<chc:Password fromEnvironment="CHAOS_PASSWORD" />
+  </chc:ChaosConfiguration>
+  <chc:ExternalClient className="LoadableFlickrClient" name="flickr"
+  	namespace="CHAOS\Harvester\Flickr">
+  	<chc:Parameter name="key">4a9d394d98d5ac263be563e4703f2477</chc:Parameter>
+  	<chc:Parameter name="secret">5b2451bbc934b6b2</chc:Parameter>
+  </chc:ExternalClient>
+  <chc:Modes>
+  	<chc:Mode className="BasicAllMode" namespace="CHAOS\Harvester\Flickr\Modes" name="all">
+  		<chc:Parameter name="flickrUsername">DRs Kulturarvsprojekt</chc:Parameter>
+  	</chc:Mode>
+  </chc:Modes>
+  <chc:Processors>
+    <chc:FileProcessor name="photo_file_large" className="PhotoFileProcessor" namespace="\CHAOS\Harvester\Flickr\Processors">
+    	<chc:FormatId>3</chc:FormatId>
+	    <chc:Destination>
+	    	<chc:baseURL>http://farm</chc:baseURL>
+	    	<chc:id>30</chc:id>
+	    </chc:Destination>
+    </chc:FileProcessor>
+    <chc:FileProcessor name="photo_file_thumb" className="PhotoThumbFileProcessor" namespace="\CHAOS\Harvester\Flickr\Processors">
+    	<chc:FormatId>9</chc:FormatId>
+	    <chc:Destination>
+	    	<chc:baseURL>http://farm</chc:baseURL>
+	    	<chc:id>30</chc:id>
+	    </chc:Destination>
+    </chc:FileProcessor>
+    <chc:ObjectProcessor className="PhotoObjectProcessor"
+    	namespace="\CHAOS\Harvester\Flickr\Processors" name="photo">
+		<chc:Filters>
+			<chc:Filter className="FlickrTagFilter" namespace="\CHAOS\Harvester\Flickr\Filters" name="tag-filter">
+				<chc:Parameter name="requiredTags">publiceretpådanskkulturarvdk</chc:Parameter>
+			</chc:Filter>
+		</chc:Filters>
+    	<chc:FolderId>252</chc:FolderId>
+    	<chc:ObjectTypeId>36</chc:ObjectTypeId>
+		<chc:PublishSettings>
+			<chc:PublishAccesspoint>
+				30000000-0000-0000-0000-000000000000
+			</chc:PublishAccesspoint>
+			<chc:UnpublishAccesspoint>
+				30000000-0000-0000-0000-000000000000
+			</chc:UnpublishAccesspoint>
+		</chc:PublishSettings>
+    </chc:ObjectProcessor>
+    <chc:MetadataProcessor name="photo_metadata" className="PhotoMetadataProcessor" namespace="\CHAOS\Harvester\Flickr\Processors">
+    	<chc:validate>true</chc:validate>
+    	<chc:schemaGUID>5906a41b-feae-48db-bfb7-714b3e105396</chc:schemaGUID>
+    </chc:MetadataProcessor>
+  </chc:Processors>
+</chc:ChaosHarvesterConfiguration>
