@@ -24,6 +24,9 @@
   	<chc:Mode className="BasicAllMode" namespace="CHAOS\Harvester\Flickr\Modes" name="all">
   		<chc:Parameter name="flickrUsername" fromEnvironment="FLICKR_USERNAME" />
   	</chc:Mode>
+  	<chc:Mode className="SetByPhotosetIDMode" namespace="CHAOS\Harvester\Flickr\Modes" name="by-photoset-id">
+  		<chc:Parameter name="flickrUsername" fromEnvironment="FLICKR_USERNAME" />
+  	</chc:Mode>
   </chc:Modes>
   <chc:Processors>
     <chc:FileProcessor name="photo_file_large" className="PhotoFileProcessor" namespace="\CHAOS\Harvester\Flickr\Processors">
@@ -45,17 +48,15 @@
 		<chc:Filters>
 			<chc:Filter className="FlickrTagFilter" namespace="\CHAOS\Harvester\Flickr\Filters" name="tag-filter">
 				<chc:Parameter name="requiredTags">publiceretpådanskkulturarvdk</chc:Parameter>
+				<chc:IgnoreInMode>by-photoset-id</chc:IgnoreInMode>
 			</chc:Filter>
 		</chc:Filters>
     	<chc:FolderId fromEnvironment="OBJECT_FOLDER_ID" />
     	<chc:ObjectTypeId>36</chc:ObjectTypeId>
-		<chc:PublishSettings>
+		<chc:PublishSettings UnpublishEverywhere="true">
 			<chc:PublishAccesspoint>
 				C4C2B8DA-A980-11E1-814B-02CEA2621172
 			</chc:PublishAccesspoint>
-			<chc:UnpublishAccesspoint>
-				C4C2B8DA-A980-11E1-814B-02CEA2621172
-			</chc:UnpublishAccesspoint>
 		</chc:PublishSettings>
     </chc:ObjectProcessor>
     <chc:MetadataProcessor name="photo_metadata" className="PhotoMetadataProcessor" namespace="\CHAOS\Harvester\Flickr\Processors">
