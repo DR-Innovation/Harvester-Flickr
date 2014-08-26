@@ -12,7 +12,12 @@ class PhotoObjectProcessor extends \CHAOS\Harvester\Processors\ObjectProcessor {
 	
 	public function process(&$externalObject, &$shadow = null) {
 		$shadow = new \CHAOS\Harvester\Shadows\ObjectShadow();
-		$this->initializeShadow($externalObject, $shadow);
+		$shadow = $this->initializeShadow($externalObject, $shadow);
+		$this->_harvester->process('unpublished-by-curator-processor', $externalObject, $shadow);
+		// If the unpublished by curator filter was failing ..
+		if($shadow->skipped) {
+			return $shadow;
+		}
 		$this->_harvester->process('photo_metadata', $externalObject, $shadow);
 		$this->_harvester->process('photo_file_large', $externalObject, $shadow);
 		$this->_harvester->process('photo_file_thumb', $externalObject, $shadow);

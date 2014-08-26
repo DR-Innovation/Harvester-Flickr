@@ -32,12 +32,13 @@ class BasicAllMode extends \CHAOS\Harvester\Modes\AllMode {
 				'content_type' => 7, // 7 for photos, screenshots, and 'other' (all).
 				'media' => 'photos'
 			));
-			
-			foreach($result['photo'] as $photo) {
-				$this->_harvester->info("[%u/%u] Processing '%s' #%u", $photoIndex++, $result['total'], $photo['title'], $photo['id']);
-				$photo['ownerid'] = $this->_flickrUserID;
-				$photo['url'] = sprintf("http://www.flickr.com/photos/%s/%u/", $photo['ownerid'], $photo['id']);
-				$photoShadow = $this->_harvester->process('photo', $photo);
+			if ($result['photo']) {
+				foreach($result['photo'] as $photo) {
+					$this->_harvester->info("[%u/%u] Processing '%s' #%u", $photoIndex++, $result['total'], $photo['title'], $photo['id']);
+					$photo['ownerid'] = $this->_flickrUserID;
+					$photo['url'] = sprintf("http://www.flickr.com/photos/%s/%u/", $photo['ownerid'], $photo['id']);
+					$photoShadow = $this->_harvester->process('photo', $photo);
+				}
 			}
 		} while($result['page'] < $result['pages']);
 		

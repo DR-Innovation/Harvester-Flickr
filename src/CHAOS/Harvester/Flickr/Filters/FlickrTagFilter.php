@@ -24,7 +24,7 @@ class FlickrTagFilter extends \CHAOS\Harvester\Filters\Filter {
 		}
 	}
 		
-	public function passes($externalObject) {
+	public function passes($externalObject, $objectShadow) {
 		if(!array_key_exists('tags', $externalObject)) {
 			throw new \RuntimeException("Expected a tags parameter on the photo returned from the Flickr service."); 
 		}
