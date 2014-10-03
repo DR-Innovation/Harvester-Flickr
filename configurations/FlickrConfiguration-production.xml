@@ -33,14 +33,14 @@
     <chc:FileProcessor name="photo_file_large" className="PhotoFileProcessor" namespace="\CHAOS\Harvester\Flickr\Processors">
     	<chc:FormatId>42</chc:FormatId>
 	    <chc:Destination>
-	    	<chc:baseURL>http://farm</chc:baseURL>
+	    	<chc:baseURL>https://farm</chc:baseURL>
 	    	<chc:id>113</chc:id>
 	    </chc:Destination>
     </chc:FileProcessor>
     <chc:FileProcessor name="photo_file_thumb" className="PhotoThumbFileProcessor" namespace="\CHAOS\Harvester\Flickr\Processors">
     	<chc:FormatId>10</chc:FormatId>
 	    <chc:Destination>
-	    	<chc:baseURL>http://farm</chc:baseURL>
+	    	<chc:baseURL>https://farm</chc:baseURL>
 	    	<chc:id>113</chc:id>
 	    </chc:Destination>
     </chc:FileProcessor>
