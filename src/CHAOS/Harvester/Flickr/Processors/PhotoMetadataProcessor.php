@@ -48,9 +48,9 @@ class PhotoMetadataProcessor extends \CHAOS\Harvester\Processors\MetadataProcess
 		
 		$result->addChild("Type", "Photo");
 		
-		$result->addChild("CreatedDate", date('c', strtotime($photo['dateupload'])));
+		$result->addChild("CreatedDate", date('c', intval($photo['dateupload'])));
 
-		$result->addChild("FirstPublishedDate", date('c', intval($photo['datetaken'])));
+		$result->addChild("FirstPublishedDate", date('c', strtotime($photo['datetaken'])));
 		
 		// Contributors and creators is left out.
 		$result->addChild('Contributors');
