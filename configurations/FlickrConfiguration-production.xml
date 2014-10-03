@@ -73,7 +73,7 @@
     <chc:MetadataProcessor name="photo_metadata" className="PhotoMetadataProcessor" namespace="\CHAOS\Harvester\Flickr\Processors">
     	<chc:validate>true</chc:validate>
     	<chc:schemaGUID>5906a41b-feae-48db-bfb7-714b3e105396</chc:schemaGUID>
-<chc:schemaLocation>abstract-harvester-base/schemas/DKA2.xsd</chc:schemaLocation>
+	<chc:schemaLocation>abstract-harvester-base/schemas/DKA2.xsd</chc:schemaLocation>
     </chc:MetadataProcessor>
   </chc:Processors>
 </chc:ChaosHarvesterConfiguration>
